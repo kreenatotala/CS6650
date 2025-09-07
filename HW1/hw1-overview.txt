@@ -1,0 +1,84 @@
+Kreena Totala
+HW1 Learning outcomes 
+
+PART 1
+1.  go mod init command initializes a new Go module in your project and the path where the god.mod file will be. 
+    The go.mod file contains all of the project dependencies 
+
+    go get . command downloads and installs all dependencies needed by the code in the current directory (.).
+
+2. project structure:
+jazz-records-api/
+├── go.mod
+├── go.sum
+└── main.go
+main.go contains three endpoints:
+    GET /albums: Retrieves all albums.  
+    GET /albums/:id: Retrieves a specific album by ID.
+    POST /albums: Adds a new album to the collection.
+
+3.  Localhost: Refers to your own computer. When you run your server on localhost:8080, it's only accessible from your machine.
+
+    Subnet: A segment of a larger network, used to organize and secure network traffic. For instance, a subnet might be used to 
+    separate internal services from public-facing ones.
+
+    Local vs. Cloud (e.g., Google Cloud Platform): Your local server is hosted on your personal machine, accessible only to you 
+    unless you configure it otherwise. Your cloud server is hosted on a cloud provider like GCP, making it accessible globally, 
+    depending on your configuration.
+
+4.  Multiple terminals can streamline the experience on serving the backend and testing the endpoints simultaneously. 
+    One terminal can be dedicated to serving the program on the dedicated localhost port (or elsewhere), and the other 
+    terminal window can eb dedicated to curl commands to the server. You can also optionally have a third terminal window 
+    to install dependencies and make sure everything is on the latest version of gin. Using curl allows you to test 
+    your API endpoints without needing a frontend or additional tools since we can hit the url with the necessary headers and body.
+
+PART 2
+1.  A Virtual Machine (VM) is a software-based emulation of a physical computer that runs an operating system and applications just 
+    like a real machine, but it runs inside another computer (the host) using virtualization technology. Running a Go server locally 
+    uses your laptop’s CPU and memory. Running the same server on an EC2 instance runs it in a cloud-based VM, isolated from other 
+    users, and accessible globally if configured as such.
+
+2.  If my IP changes, I would have to update he security group with the new IP or update it to 0.0.0.0/0 to allow traffic from anywhere.
+
+3.  By default, every time an EC2 instance is stopped, restarted, or terminated, it gets a new public IP. An Elastic IP (EIP) is a static 
+    IPv4 address you can allocate to your AWS account and associate with your instance. Using an EIP ensures your instance keeps the same 
+    public IP even after restarts or failures. However, if you create an EIP and it is unused, it can incur a small cost.
+
+4.  When selecting an EC2 instance type, you're essentially choosing a combination of compute capacity (vCPUs), memory (RAM), storage, 
+    and networking performance tailored to your application's needs. AWS offers various instance families optimized for specific workloads.
+    Understanding and selecting the appropriate instance type ensures optimal performance by atching your application's requirements with 
+    the right resources. Ensures the correct tradeoff between cost efficiency and scalability. 
+
+** see powerpoint for details **
+
+Both GCP and EC2 provide virtualized compute, but GCP emphasizes simplicity and flexibility with custom machine types, while AWS provides 
+a broader range of instance types and fine-grained control over networking, security, and performance tuning.
+
+To test this I served the EC2 instance locally and then sent a curl request to all three endpoints that we created from a separate terminal 
+window. 
+
+PART 3
+Distribution shape: My distribution shows most response times tightly clustered between 155–165 ms, but with a noticeable long tail that 
+stretches up to almost 300 ms. This means that while the majority of requests are very fast, a small percentage (less than 5%) fall into 
+the slower category above about 180 ms.
+
+Consistency: Looking at my scatter plot, response times are generally consistent around 160 ms, but there are occasional spikes into the 
+200–280 ms range. These spikes happen sporadically rather than in a clear pattern, suggesting brief bursts of resource contention.
+
+Percentiles: In my data, the median (50th percentile) response time is about 160 ms, while the 95th percentile rises to around 174 ms. 
+That ~15 ms gap shows that most requests are stable with not much variability, but a small fraction of them take considerably longer, indicating 
+some variability in performance.
+
+Infrastructure Impact: Since I’m running this service in a single container on a basic EC2 instance, the variability in my response times likely 
+comes from limited CPU or memory resources. Small fluctuations—like garbage collection in Go or shared CPU scheduling—can slow down a 
+handful of requests, which explains the long tail in my results.
+
+Scalability: If I scaled this to 100 concurrent users instead of running sequential requests, I’d expect my spikes to become more common and more severe. 
+A single small EC2 instance could bottleneck under that load, and requests might start queueing up, driving response times higher. Adding more 
+instances or moving to a larger one would likely help.
+
+Network vs Processing: The baseline response time of ~160 ms in my distribution likely reflects a mix of server processing and network latency. 
+The higher outliers—closer to 280 ms—could be caused by either temporary network delays or EC2 resource contention. The region of my EC2 
+instance may also play a role. If the server is running far from where I’m testing, the added physical distance and internet routing hops 
+increase latency. To separate these effects, I could log server-side request handling times to isolate processing, then compare them to 
+client-side timings, and even test from different geographic regions to see how much network distance contributes.
